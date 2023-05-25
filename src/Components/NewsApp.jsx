@@ -20,24 +20,29 @@ const NewsApp = () => {
     window.open(url, "_blank");
   };
   const handleContainerClick = (url) => {
-    window.location.href = url;
+    window.location.href = window.location.href + url;
   };
 
   const fetchNews = async () => {
     try {
       setLoading(true);
-      let cachedData = localStorage.getItem("newsCache");
+      let cachedData = localStorage.getItem(`newsCache-${searchQuery}`);
       let parsedData = cachedData ? JSON.parse(cachedData) : null;
 
-      if (parsedData && parsedData.currentPage === currentPage && parsedData.searchQuery === searchQuery) {
+      if (
+        parsedData &&
+        parsedData.currentPage === currentPage &&
+        parsedData.searchQuery === searchQuery &&
+        Date.now() - parsedData.timestamp <= 3600000 // 1 hour in milliseconds
+      ) {
         setNews(parsedData.news);
         setTotalResults(parsedData.totalResults);
         setLoading(false);
       } else {
-        let apiUrl = `https://newsapi.org/v2/top-headlines?country=us&language=en&pageSize=${PAGE_SIZE}&page=${currentPage}`;
+        let apiUrl = `https://newsapi.org/v2/top-headlines?language=en&pageSize=${PAGE_SIZE}&page=${currentPage}`;
 
         if (searchQuery) {
-          apiUrl = `https://newsapi.org/v2/top-headlines?q=${searchQuery}&language=en&country=us&apiKey=${API_KEY}&pageSize=${PAGE_SIZE}&page=${currentPage}`;
+          apiUrl = `https://newsapi.org/v2/top-headlines?q=${searchQuery}&language=en&apiKey=${API_KEY}&pageSize=${PAGE_SIZE}&page=${currentPage}`;
         }
 
         const response = await axios.get(apiUrl, {
@@ -54,9 +59,10 @@ const NewsApp = () => {
           news: response.data.articles,
           totalResults: response.data.totalResults,
           currentPage,
-          searchQuery
+          searchQuery,
+          timestamp: Date.now(),
         };
-        localStorage.setItem("newsCache", JSON.stringify(cachedData));
+        localStorage.setItem(`newsCache-${searchQuery}`, JSON.stringify(cachedData));
       }
     } catch (error) {
       console.error(error);
@@ -133,11 +139,11 @@ const NewsApp = () => {
 
   useEffect(() => {
     fetchBusinessNews();
-  }, [ setNews]);
+  }, [setNews]);
 
   useEffect(() => {
     fetchSportsNews();
-  }, [ setNews]);
+  }, [setNews]);
 
   const handleNextPage = () => {
     if (currentPage < Math.ceil(totalResults / PAGE_SIZE)) {
@@ -153,73 +159,80 @@ const NewsApp = () => {
 
   return (
     <div className="main">
-      <div className="news-container"
-        style={{ display: 'flex' }}>
+      <div className="news-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
         {loading ? (
           <div>Loading...</div>
         ) : (
           <>
-            <div
-              style={{ width: '80%', margin: '0rem .5rem' }}
-              className="container news-app-page"
-            >
-              <h1 style={{ width: '100vh', color: 'black', display: 'flex', justifyContent: 'center' }}
-                className="heading"
-              >Headlines</h1>
+            {news.length === 0 ? (
+              <div style={{ margin: '5rem 15rem;' }}><h1 >No news found for the search query.</h1></div>
+            )
+              : (
+                <>
+                  <div style={{ width: '80%' }}>
+                    <h1 style={{ color: 'black', marginTop: '3rem', display: 'flex', justifyContent: 'center' }}
+                      className="heading"
+                    >Headlines</h1>
+                    <div
+                      style={{ margin: '0rem .5rem', padding: '0rem' }}
+                      className="container news-app-page"
+                    >
+                      {news.map((article, index) => (
+                        <div
+                          style={{ width: '45%' }}
+                          className="card"
+                          key={`${article.title}-${index}`}
+                          onClick={() => handleCardClick(article.url)}
+                        >
+                          <h2 className="title">{article.title}</h2>
+                          <p className="description">{article.description}</p>
+                          <img src={article.urlToImage || placeHolder} alt="img" className="article-image" />
 
-              {news.map((article, index) => (
-                <div
-                  style={{ width: '45%' }}
-                  className="card"
-                  key={`${article.title}-${index}`}
-                  onClick={() => handleCardClick(article.url)}
-                >
-                  <h2 className="title">{article.title}</h2>
-                  <p className="description">{article.description}</p>
-                  <img src={article.urlToImage || placeHolder} alt="img" className="article-image" />
+                          <p className="source">
+                            Source: <a href={article.url}>{article.source.name}</a>
+                          </p>
+                          <p className="publish-date">Publish Date: {article.publishedAt}</p>
+                        </div>
+                      ))}
 
-                  <p className="source">
-                    Source: <a href={article.url}>{article.source.name}</a>
-                  </p>
-                  <p className="publish-date">Publish Date: {article.publishedAt}</p>
-                </div>
-              ))}
-
-              <div className="pagination">
-                <button onClick={handlePreviousPage} disabled={currentPage === 1}>
-                  Previous
-                </button>
-                <button
-                  onClick={handleNextPage}
-                  disabled={currentPage >= Math.ceil(totalResults / PAGE_SIZE)}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-
-            <div style={{ width: '20%' }} className="business-news"
-              onClick={() => handleContainerClick('http://127.0.0.1:5173/business')}>
-              <h3>Business News</h3>
-              {businessNews.map((article, index) => (
-                <div
-                  
-                  className="b-card"
-                  key={`${article.title}-${index}`}
-                >
-                  <h2 className="b-title">{article.title}</h2>
-                  <p className="b-description">{article.description}</p>
-
-                </div>
-              ))}
-            </div>
+                    </div>
+                    <div className="pagination">
+                      <button onClick={handlePreviousPage} disabled={currentPage === 1}>
+                        Previous
+                      </button>
+                      <button
+                        onClick={handleNextPage}
+                        disabled={currentPage >= Math.ceil(totalResults / PAGE_SIZE)}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
 
 
+                </>
+
+              )}
           </>
         )}
+        <div style={{ width: '20%' }} className="business-news"
+          onClick={() => handleContainerClick('business')}>
+          <h3>Business News</h3>
+          {businessNews.map((article, index) => (
+            <div
+
+              className="b-card"
+              key={`${article.title}-${index}`}
+            >
+              <h2 className="b-title">{article.title}</h2>
+              <p className="b-description">{article.description}</p>
+
+            </div>
+          ))}
+        </div>
       </div>
       <div className="sports-news"
-        onClick={() => handleContainerClick('http://127.0.0.1:5173/sports')}>
+        onClick={() => handleContainerClick('sports')}>
         <h3 style={{ padding: '1rem' }}>Sports News</h3>
         <div className="sports-card">
           {sportsNews.map((article, index) => (

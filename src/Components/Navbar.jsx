@@ -1,15 +1,15 @@
 import './Navbar.css';
-import React from 'react';
-// import { Link } from 'react-router-dom';
-// import { NewsContext } from './NewsContext';
+import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { NewsContext } from './NewsContext';
 
 const Navbar = () => {
-//   const [searchValue, setSearchValue] = useState('');
-//   const { setSearchQuery } = useContext(NewsContext);
+  const [searchValue, setSearchValue] = useState('');
+  const { setSearchQuery } = useContext(NewsContext);
 
-//   const handleSearch = () => {
-//     setSearchQuery(searchValue);
-//   };
+  const handleSearch = () => {
+    setSearchQuery(searchValue);
+  };
 
   return (
     <div className="nav">
@@ -18,19 +18,19 @@ const Navbar = () => {
       </div>
       <div className="category">
         <ul>
-          <li>Home</li>
-          <li>Politics</li>
-          <li>Science</li>
-          <li>Sports</li>
-          <li>Business</li>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/politics">Politics</Link></li>
+          <li><Link to="/science">Science</Link></li>
+          <li><Link to="/sports">Sports</Link></li>
+          <li><Link to="/business">Business</Link></li>
         </ul>
         <input
           type="text"
-        //   value={searchValue}
-         
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
           placeholder="Search news..."
         />
-        <button >Search</button>
+        <button onClick={handleSearch}>Search</button>
       </div>
     </div>
   );
