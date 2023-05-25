@@ -1,0 +1,51 @@
+* {
+    padding: 0%;
+    margin: 0%;
+  }
+  
+  .nav {
+    padding: 0rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    background-color: #b80000;
+    color: white;
+  }
+  
+  .logo {
+    margin-left: 4rem;
+    margin: 1rem 2rem;
+  }
+  
+  .category {
+    display: flex;
+  }
+  ul {
+    display: flex;
+    margin: 1rem 2rem;
+  }
+  
+  li {
+    list-style: none;
+    margin: 0rem 1.5rem;
+    color: white;
+  }
+  
+  
+  
+  input {
+    height: 2rem;
+    margin: 0.5rem 0.3rem;
+    padding-left: 1rem;
+  }
+  
+  button {
+    height: 2rem;
+    margin: 0.5rem 0.3rem;
+    padding: 0.5rem;
+  }
+  
+  li a {
+    text-decoration: none;
+    color: white;
+  }
+  
